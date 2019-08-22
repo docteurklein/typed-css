@@ -1,47 +1,50 @@
-
-use std::fmt::Display;
 use std::fmt;
 
+#[allow(non_camel_case_types)]
 #[derive(Debug)]
-pub struct Property {
-    pub name: PropertyName,
-    pub value: String,
-}
-
-#[derive(Debug)]
-pub enum PropertyName {
-    color,
+pub enum PropertyNames {
     background_color,
+    color,
+    border,
 }
 
-impl Display for PropertyName {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let name = match self {
-            background_color => "background-color".to_string(),
-            _ => self.to_string(),
-        };
+#[allow(non_camel_case_types)]
+#[derive(Debug)]
+pub enum PropertyValues {
+    border,
+    blue,
+    green,
+}
 
-        write!(f, "{}", name)
+impl fmt::Display for PropertyNames {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            PropertyNames::background_color => write!(f, "{}", "background-color"),
+            _ => write!(f, "{:?}", self)
+        }
     }
 }
 
-struct Block {
-    selector: String,
-    properties: Vec<Property>,
-}
-
-impl Display for Property {
+impl fmt::Display for PropertyValues {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}: {};", self.name, self.value)
+        write!(f, "{:?}", self)
     }
 }
 
 #[macro_export]
 macro_rules! css {
-    ($name:ident: $value:ident;) => {
-        format!("{}", css::Property {
-            name: $crate::css::PropertyName::$name,
-            value: stringify!($value).to_string(),
-        })
+    ($($selector:ident { $props:block }),*) => {
+        $( format!("{} \\{
+            {}
+        \\}",
+            $selector,
+            $props
+        ) )*
+    };
+    ($($property:ident: $value:ident;),*) => {
+        $( format!("{}: {};",
+            $crate::css::PropertyNames::$property,
+            $crate::css::PropertyValues::$value,
+        ) )*
     };
 }
